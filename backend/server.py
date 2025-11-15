@@ -51,6 +51,19 @@ async def lifespan(app: FastAPI):
             tokenizers["qwen"].pad_token = tokenizers["qwen"].eos_token
 
         logger.info("Qwen loaded successfully")
+
+        # Load TinyLlama chat model for better instruct performance
+        tinyllama_model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+        logger.info("Loading TinyLlama Chat (1.1B)...")
+        tokenizers["tinyllama"] = AutoTokenizer.from_pretrained(tinyllama_model_name)
+        models["tinyllama"] = AutoModelForCausalLM.from_pretrained(
+            tinyllama_model_name
+        )
+
+        if tokenizers["tinyllama"].pad_token is None:
+            tokenizers["tinyllama"].pad_token = tokenizers["tinyllama"].eos_token
+
+        logger.info("TinyLlama Chat loaded successfully")
         logger.info("All models loaded!")
 
     except Exception as e:
@@ -90,7 +103,9 @@ class GenerateRequest(BaseModel):
     prompt: str = Field(
         ..., min_length=1, max_length=2000, description="Input text prompt"
     )
-    model: Literal["gpt2", "qwen"] = Field(default="gpt2", description="Model to use")
+    model: Literal["gpt2", "qwen", "tinyllama"] = Field(
+        default="gpt2", description="Model to use"
+    )
     strategy: Literal["greedy", "beam", "sampling", "top_k"] = Field(
         default="sampling", description="Decoding strategy"
     )
@@ -185,6 +200,11 @@ async def list_models():
             "name": "qwen",
             "description": "Qwen2-0.5B-Instruct - Efficient instruction-tuned model",
             "loaded": "qwen" in models,
+        },
+        {
+            "name": "tinyllama",
+            "description": "TinyLlama 1.1B Chat - compact yet capable instruct-tuned model",
+            "loaded": "tinyllama" in models,
         },
     ]
     return model_info

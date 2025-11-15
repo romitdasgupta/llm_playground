@@ -1,6 +1,8 @@
 # Text Generation Playground
 
-A complete web-based text generation playground with REST API backend and modern web frontend. Users can experiment with different language models (GPT-2, Qwen) and decoding strategies (Greedy, Beam Search, Sampling, Top-k).
+A complete web-based text generation playground with REST API backend and modern web frontend. Users can experiment with different language models (GPT-2, Qwen, TinyLlama Chat) and decoding strategies (Greedy, Beam Search, Sampling, Top-k).
+
+![Text Generation Playground UI](ui.png)
 
 ## Architecture
 
@@ -17,7 +19,7 @@ text-generation-playground/
 
 1. **Backend (FastAPI)**
    - REST API for text generation
-   - Supports multiple models (GPT-2, Qwen)
+   - Supports multiple models (GPT-2, Qwen, TinyLlama Chat)
    - Multiple decoding strategies
    - Health check and monitoring endpoints
 
@@ -31,6 +33,7 @@ text-generation-playground/
 ### Supported Models
 - **GPT-2**: OpenAI's classic autoregressive language model
 - **Qwen2-0.5B-Instruct**: Efficient instruction-tuned model
+- **TinyLlama-1.1B-Chat**: Compact yet more capable instruction-following model
 
 ### Decoding Strategies
 1. **Greedy**: Deterministic, always picks highest probability token
@@ -119,7 +122,7 @@ Check server health and model status
 {
   "status": "healthy",
   "models_loaded": 2,
-  "available_models": ["gpt2", "qwen"]
+  "available_models": ["gpt2", "qwen", "tinyllama"]
 }
 ```
 
@@ -355,7 +358,7 @@ outputs = model.generate(
 
 4. **Out of memory**
    - Reduce batch size
-   - Use smaller model (Qwen 0.5B)
+   - Use smaller model (Qwen 0.5B or TinyLlama 1.1B Chat)
    - Enable gradient checkpointing
    - Use CPU offloading
 

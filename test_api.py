@@ -193,6 +193,22 @@ class TestTextGeneration:
         data = response.json()
         assert data["model"] == "qwen"
 
+    def test_generate_with_tinyllama(self, api_client):
+        """Test text generation with TinyLlama Chat model."""
+        payload = {
+            "prompt": "Explain why the sky looks blue",
+            "model": "tinyllama",
+            "strategy": "sampling",
+            "temperature": 0.7,
+            "max_length": 50,
+        }
+        response = api_client.post(
+            f"{API_BASE_URL}/generate", json=payload, timeout=TIMEOUT
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["model"] == "tinyllama"
+
 
 class TestParameterValidation:
     """Test parameter validation and error handling."""

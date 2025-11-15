@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Generation Playground</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+        }
+
+        .info-box li {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        textarea, select, input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .output-section.visible {
+            display: block;
+        }
+
+        .output-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .output-header h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .output-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .output-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .output-meta strong {
+            color: #667eea;
+        }
+
+        .output-content {
+            padding: 25px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            min-height: 150px;
+            line-height: 1.8;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.online {
+            background: #4caf50;
+            box-shadow: 0 0 10px #4caf50;
+        }
+
+        .status-indicator.offline {
+            background: #f44336;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Text Generation Playground</h1>
+            <p>Experiment with different models and decoding strategies</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <h3>📚 Decoding Strategies</h3>
+                <ul>
+                    <li><strong>Greedy:</strong> Always picks the most likely next token (deterministic)</li>
+                    <li><strong>Beam Search:</strong> Explores multiple paths simultaneously for better coherence</li>
+                    <li><strong>Sampling:</strong> Randomly samples based on probability distribution (uses temperature)</li>
+                    <li><strong>Top-k Sampling:</strong> Samples from the top k most likely tokens (uses temperature)</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>Temperature:</strong> Controls randomness (lower = more focused, higher = more creative)</p>
+            </div>
+
+            <form id="generateForm">
+                <div class="form-group">
+                    <label for="prompt">Prompt:</label>
+                    <textarea id="prompt" name="prompt" placeholder="Enter your prompt here..." required>Once upon a time in a distant galaxy,</textarea>
+                </div>
+
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label for="model">Model:</label>
+                        <select id="model" name="model">
+                            <option value="gpt2">GPT-2</option>
+                            <option value="qwen">Qwen</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="strategy">Decoding Strategy:</label>
+                        <select id="strategy" name="strategy">
+                            <option value="greedy">Greedy</option>
+                            <option value="beam">Beam Search</option>
+                            <option value="sampling" selected>Sampling</option>
+                            <option value="top_k">Top-k Sampling</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="temperature">Temperature: <span class="slider-value" id="tempValue">0.8</span></label>
+                    <input type="range" id="temperature" name="temperature" min="0.1" max="2.0" step="0.1" value="0.8">
+                </div>
+
+                <div class="form-group">
+                    <label for="maxLength">Max Length: <span class="slider-value" id="lengthValue">100</span></label>
+                    <input type="range" id="maxLength" name="maxLength" min="20" max="500" step="10" value="100">
+                </div>
+
+                <button type="submit" class="generate-btn" id="generateBtn">
+                    Generate Text
+                </button>
+            </form>
+
+            <div class="output-section" id="outputSection">
+                <div class="output-header">
+                    <h3>Generated Text</h3>
+                    <div class="output-meta" id="outputMeta"></div>
+                </div>
+                <div class="output-content" id="outputContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:8000';
+
+        // Elements
+        const form = document.getElementById('generateForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const outputSection = document.getElementById('outputSection');
+        const outputContent = document.getElementById('outputContent');
+        const outputMeta = document.getElementById('outputMeta');
+        const tempSlider = document.getElementById('temperature');
+        const tempValue = document.getElementById('tempValue');
+        const lengthSlider = document.getElementById('maxLength');
+        const lengthValue = document.getElementById('lengthValue');
+        const strategySelect = document.getElementById('strategy');
+
+        // Update slider values
+        tempSlider.addEventListener('input', (e) => {
+            tempValue.textContent = e.target.value;
+        });
+
+        lengthSlider.addEventListener('input', (e) => {
+            lengthValue.textContent = e.target.value;
+        });
+
+        // Enable/disable temperature based on strategy
+        strategySelect.addEventListener('change', (e) => {
+            const strategy = e.target.value;
+            const usesTemp = strategy === 'sampling' || strategy === 'top_k';
+            tempSlider.disabled = !usesTemp;
+            tempSlider.style.opacity = usesTemp ? '1' : '0.5';
+        });
+
+        // Check backend health on load
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                console.log('Backend health:', data);
+                return data.status === 'healthy';
+            } catch (error) {
+                console.error('Backend not reachable:', error);
+                return false;
+            }
+        }
+
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Get form data
+            const formData = {
+                prompt: document.getElementById('prompt').value,
+                model: document.getElementById('model').value,
+                strategy: document.getElementById('strategy').value,
+                temperature: document.getElementById('temperature').value,
+                maxLength: document.getElementById('maxLength').value
+            };
+
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            outputSection.classList.add('visible');
+            outputContent.textContent = '';
+            outputMeta.innerHTML = '';
+
+            try {
+                // Use streaming generation
+                const response = await fetch(`${API_BASE_URL}/generate/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: formData.prompt,
+                        model: formData.model,
+                        strategy: formData.strategy,
+                        temperature: parseFloat(formData.temperature),
+                        max_length: parseInt(formData.maxLength)
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Generation failed');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let metadata = null;
+                let generatedText = '';
+
+                // Display prompt initially
+                outputContent.textContent = formData.prompt;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // Keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                if (data.type === 'start') {
+                                    metadata = {
+                                        prompt: data.prompt,
+                                        model: data.model,
+                                        strategy: data.strategy,
+                                        parameters: data.parameters
+                                    };
+                                    
+                                    // Display metadata
+                                    const strategyNames = {
+                                        'greedy': 'Greedy',
+                                        'beam': 'Beam Search',
+                                        'sampling': 'Sampling',
+                                        'top_k': 'Top-k Sampling'
+                                    };
+
+                                    const modelNames = {
+                                        'gpt2': 'GPT-2',
+                                        'qwen': 'Qwen'
+                                    };
+
+                                    let metaHTML = `
+                                        <span><strong>Model:</strong> ${modelNames[data.model]}</span>
+                                        <span><strong>Strategy:</strong> ${strategyNames[data.strategy]}</span>
+                                    `;
+
+                                    if (data.parameters.temperature !== undefined) {
+                                        metaHTML += `<span><strong>Temperature:</strong> ${data.parameters.temperature}</span>`;
+                                    }
+
+                                    outputMeta.innerHTML = metaHTML;
+                                    
+                                } else if (data.type === 'token') {
+                                    // Append token to generated text
+                                    generatedText += data.token;
+                                    // Update display with prompt + generated text
+                                    outputContent.textContent = formData.prompt + generatedText;
+                                    
+                                } else if (data.type === 'end') {
+                                    // Generation complete
+                                    break;
+                                    
+                                } else if (data.type === 'error') {
+                                    throw new Error(data.message);
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data:', e);
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                outputContent.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                outputMeta.innerHTML = '';
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Text';
+            }
+        });
+
+        // Check health on load
+        window.addEventListener('load', async () => {
+            const healthy = await checkHealth();
+            if (!healthy) {
+                alert('Warning: Backend server is not reachable. Please make sure the server is running on http://localhost:8000');
+            }
+        });
+    </script>
+</body>
+</html>

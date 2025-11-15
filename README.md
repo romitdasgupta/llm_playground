@@ -60,7 +60,13 @@ mkdir text-generation-playground
 cd text-generation-playground
 ```
 
-2. **Install backend dependencies**
+2. **(Recommended) Create a virtual environment**
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+```
+
+3. **Install backend dependencies**
 ```bash
 cd backend
 pip install -r requirements.txt

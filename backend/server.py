@@ -22,6 +22,12 @@ logger = logging.getLogger(__name__)
 # Global variables for models
 models = {}
 tokenizers = {}
+model_metadata = {}
+
+
+def count_parameters(model: AutoModelForCausalLM) -> int:
+    """Return total number of parameters for a model."""
+    return sum(p.numel() for p in model.parameters())
 
 
 @asynccontextmanager
@@ -38,6 +44,9 @@ async def lifespan(app: FastAPI):
         if tokenizers["gpt2"].pad_token is None:
             tokenizers["gpt2"].pad_token = tokenizers["gpt2"].eos_token
 
+        model_metadata["gpt2"] = {
+            "parameter_count": count_parameters(models["gpt2"]),
+        }
         logger.info("GPT-2 loaded successfully")
 
         # Load Qwen
@@ -50,6 +59,9 @@ async def lifespan(app: FastAPI):
         if tokenizers["qwen"].pad_token is None:
             tokenizers["qwen"].pad_token = tokenizers["qwen"].eos_token
 
+        model_metadata["qwen"] = {
+            "parameter_count": count_parameters(models["qwen"]),
+        }
         logger.info("Qwen loaded successfully")
 
         # Load TinyLlama chat model for better instruct performance
@@ -63,7 +75,11 @@ async def lifespan(app: FastAPI):
         if tokenizers["tinyllama"].pad_token is None:
             tokenizers["tinyllama"].pad_token = tokenizers["tinyllama"].eos_token
 
+        model_metadata["tinyllama"] = {
+            "parameter_count": count_parameters(models["tinyllama"]),
+        }
         logger.info("TinyLlama Chat loaded successfully")
+
         logger.info("All models loaded!")
 
     except Exception as e:
@@ -76,6 +92,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down...")
     models.clear()
     tokenizers.clear()
+    model_metadata.clear()
 
 
 # Initialize FastAPI app
@@ -153,6 +170,7 @@ class ModelInfo(BaseModel):
     name: str
     description: str
     loaded: bool
+    parameter_count: Optional[int] = None
 
 
 class HealthResponse(BaseModel):
@@ -195,16 +213,21 @@ async def list_models():
             "name": "gpt2",
             "description": "GPT-2 - OpenAI's autoregressive language model",
             "loaded": "gpt2" in models,
+            "parameter_count": model_metadata.get("gpt2", {}).get("parameter_count"),
         },
         {
             "name": "qwen",
             "description": "Qwen2-0.5B-Instruct - Efficient instruction-tuned model",
             "loaded": "qwen" in models,
+            "parameter_count": model_metadata.get("qwen", {}).get("parameter_count"),
         },
         {
             "name": "tinyllama",
             "description": "TinyLlama 1.1B Chat - compact yet capable instruct-tuned model",
             "loaded": "tinyllama" in models,
+            "parameter_count": model_metadata.get("tinyllama", {}).get(
+                "parameter_count"
+            ),
         },
     ]
     return model_info

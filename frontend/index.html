@@ -303,6 +303,13 @@
                 <p style="margin-top: 15px;"><strong>Temperature:</strong> Controls randomness (lower = more focused, higher = more creative)</p>
             </div>
 
+            <div class="info-box">
+                <h3>🧠 Model Architectures</h3>
+                <ul id="modelDetails">
+                    <li>Loading model information...</li>
+                </ul>
+            </div>
+
             <form id="generateForm">
                 <div class="form-group">
                     <label for="prompt">Prompt:</label>
@@ -370,6 +377,7 @@
         const lengthSlider = document.getElementById('maxLength');
         const lengthValue = document.getElementById('lengthValue');
         const strategySelect = document.getElementById('strategy');
+        const modelDetailsList = document.getElementById('modelDetails');
 
         // Update slider values
         tempSlider.addEventListener('input', (e) => {
@@ -398,6 +406,36 @@
             } catch (error) {
                 console.error('Backend not reachable:', error);
                 return false;
+            }
+        }
+
+        async function loadModelInfo() {
+            if (!modelDetailsList) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/models`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch model information');
+                }
+                const data = await response.json();
+                if (!Array.isArray(data)) {
+                    throw new Error('Unexpected response format');
+                }
+
+                modelDetailsList.innerHTML = data.map(model => {
+                    const status = model.loaded ? '✅ Ready' : '⏳ Loading';
+                    const params = model.parameter_count !== null && model.parameter_count !== undefined
+                        ? new Intl.NumberFormat().format(model.parameter_count)
+                        : 'N/A';
+                    return `
+                        <li>
+                            <strong>${model.description}</strong><br>
+                            Parameters: ${params} • ${status}
+                        </li>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Unable to load model info:', error);
+                modelDetailsList.innerHTML = '<li>Failed to load model information.</li>';
             }
         }
 
@@ -534,6 +572,7 @@
             if (!healthy) {
                 alert('Warning: Backend server is not reachable. Please make sure the server is running on http://localhost:8000');
             }
+            loadModelInfo();
         });
     </script>
 </body>

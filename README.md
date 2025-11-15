@@ -96,6 +96,17 @@ python -m http.server 8080
 # Then open http://localhost:8080
 ```
 
+### Using `start.sh`
+
+To spin up both services with one command, use the provided helper script from the project root:
+
+```bash
+chmod +x start.sh  # first run only
+./start.sh
+```
+
+The script verifies dependencies, ensures the expected ports (8000 / 8080) are free, installs backend requirements if needed, then launches the FastAPI backend and a simple HTTP server for the frontend. Press `Ctrl+C` to stop both processes together.
+
 ## API Documentation
 
 ### Endpoints

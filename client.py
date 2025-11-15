@@ -11,6 +11,7 @@ from dataclasses import dataclass
 @dataclass
 class GenerationResult:
     """Result of text generation."""
+
     generated_text: str
     prompt: str
     model: str
@@ -18,14 +19,14 @@ class GenerationResult:
     parameters: Dict[str, Any]
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'GenerationResult':
+    def from_dict(cls, data: dict) -> "GenerationResult":
         """Create GenerationResult from API response."""
         return cls(
-            generated_text=data['generated_text'],
-            prompt=data['prompt'],
-            model=data['model'],
-            strategy=data['strategy'],
-            parameters=data['parameters']
+            generated_text=data["generated_text"],
+            prompt=data["prompt"],
+            model=data["model"],
+            strategy=data["strategy"],
+            parameters=data["parameters"],
         )
 
 
@@ -39,7 +40,7 @@ class TextGenerationClient:
         Args:
             base_url: Base URL of the API server
         """
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
 
     def health_check(self) -> Dict[str, Any]:
@@ -93,7 +94,7 @@ class TextGenerationClient:
         max_length: int = 100,
         top_k: Optional[int] = 50,
         top_p: Optional[float] = 0.95,
-        num_beams: Optional[int] = 5
+        num_beams: Optional[int] = 5,
     ) -> GenerationResult:
         """
         Generate text using the specified parameters.
@@ -131,7 +132,7 @@ class TextGenerationClient:
             "model": model,
             "strategy": strategy,
             "temperature": temperature,
-            "max_length": max_length
+            "max_length": max_length,
         }
 
         # Add optional parameters
@@ -143,10 +144,7 @@ class TextGenerationClient:
             payload["num_beams"] = num_beams
 
         # Make request
-        response = self.session.post(
-            f"{self.base_url}/generate",
-            json=payload
-        )
+        response = self.session.post(f"{self.base_url}/generate", json=payload)
         response.raise_for_status()
 
         # Parse and return result
@@ -156,7 +154,7 @@ class TextGenerationClient:
         self,
         prompt: str,
         model: Literal["gpt2", "qwen"] = "gpt2",
-        max_length: int = 100
+        max_length: int = 100,
     ) -> GenerationResult:
         """
         Generate text using greedy decoding.
@@ -170,10 +168,7 @@ class TextGenerationClient:
             GenerationResult containing the generated text
         """
         return self.generate(
-            prompt=prompt,
-            model=model,
-            strategy="greedy",
-            max_length=max_length
+            prompt=prompt, model=model, strategy="greedy", max_length=max_length
         )
 
     def generate_beam(
@@ -181,7 +176,7 @@ class TextGenerationClient:
         prompt: str,
         model: Literal["gpt2", "qwen"] = "gpt2",
         num_beams: int = 5,
-        max_length: int = 100
+        max_length: int = 100,
     ) -> GenerationResult:
         """
         Generate text using beam search.
@@ -200,7 +195,7 @@ class TextGenerationClient:
             model=model,
             strategy="beam",
             num_beams=num_beams,
-            max_length=max_length
+            max_length=max_length,
         )
 
     def generate_sampling(
@@ -209,7 +204,7 @@ class TextGenerationClient:
         model: Literal["gpt2", "qwen"] = "gpt2",
         temperature: float = 0.8,
         top_p: float = 0.95,
-        max_length: int = 100
+        max_length: int = 100,
     ) -> GenerationResult:
         """
         Generate text using nucleus (top-p) sampling.
@@ -230,7 +225,7 @@ class TextGenerationClient:
             strategy="sampling",
             temperature=temperature,
             top_p=top_p,
-            max_length=max_length
+            max_length=max_length,
         )
 
     def generate_top_k(
@@ -239,7 +234,7 @@ class TextGenerationClient:
         model: Literal["gpt2", "qwen"] = "gpt2",
         temperature: float = 0.8,
         top_k: int = 50,
-        max_length: int = 100
+        max_length: int = 100,
     ) -> GenerationResult:
         """
         Generate text using top-k sampling.
@@ -260,7 +255,7 @@ class TextGenerationClient:
             strategy="top_k",
             temperature=temperature,
             top_k=top_k,
-            max_length=max_length
+            max_length=max_length,
         )
 
     def close(self):
@@ -296,7 +291,7 @@ if __name__ == "__main__":
         prompt="Once upon a time in a distant galaxy,",
         model="gpt2",
         strategy="sampling",
-        temperature=0.7
+        temperature=0.7,
     )
     print(f"Prompt: {result.prompt}")
     print(f"Generated: {result.generated_text}")
@@ -304,26 +299,21 @@ if __name__ == "__main__":
     # Example 2: Greedy decoding
     print("\n--- Example 2: Greedy ---")
     result = client.generate_greedy(
-        prompt="The future of artificial intelligence is",
-        max_length=80
+        prompt="The future of artificial intelligence is", max_length=80
     )
     print(f"Generated: {result.generated_text}")
 
     # Example 3: Beam search
     print("\n--- Example 3: Beam Search ---")
     result = client.generate_beam(
-        prompt="In the year 2050,",
-        num_beams=5,
-        max_length=100
+        prompt="In the year 2050,", num_beams=5, max_length=100
     )
     print(f"Generated: {result.generated_text}")
 
     # Example 4: Top-k sampling
     print("\n--- Example 4: Top-k Sampling ---")
     result = client.generate_top_k(
-        prompt="The most important discovery in physics was",
-        temperature=0.9,
-        top_k=40
+        prompt="The most important discovery in physics was", temperature=0.9, top_k=40
     )
     print(f"Generated: {result.generated_text}")
 
@@ -332,5 +322,3 @@ if __name__ == "__main__":
     with TextGenerationClient() as client:
         result = client.generate("Hello, world!")
         print(f"Generated: {result.generated_text}")
-
-    

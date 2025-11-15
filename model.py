@@ -29,29 +29,30 @@ print(f"Qwen parameters: {sum(p.numel() for p in qwen_model.parameters()):,}")
 def generate(model, tokenizer, prompt, strategy="greedy", max_new_tokens=128):
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     if strategy == "greedy":
-      gen_kwargs = {
-          "do_sample": False,
-      }
+        gen_kwargs = {
+            "do_sample": False,
+        }
     elif strategy == "top-k":
-      gen_kwargs = {
-          "do_sample": True,
-          "top_k": 50,
-          "temperature": 0.7,
-      }
+        gen_kwargs = {
+            "do_sample": True,
+            "top_k": 50,
+            "temperature": 0.7,
+        }
     elif strategy == "top-p":
-      gen_kwargs = {
-          "do_sample": True,
-          "top_p": 0.9,
-          "temperature": 0.7,
-      }
+        gen_kwargs = {
+            "do_sample": True,
+            "top_p": 0.9,
+            "temperature": 0.7,
+        }
     else:
-      raise ValueError(f"Unknown strategy: {strategy}")
-    
+        raise ValueError(f"Unknown strategy: {strategy}")
+
     with torch.no_grad():
-      output = model.generate(**inputs,
-                              max_new_tokens=max_new_tokens,
-                              pad_token_id=tokenizer.pad_token_id,
-                              **gen_kwargs)
-    
+        output = model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            pad_token_id=tokenizer.pad_token_id,
+            **gen_kwargs,
+        )
 
     return tokenizer.decode(output[0], skip_special_tokens=True)
